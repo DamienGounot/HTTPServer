@@ -1,0 +1,20 @@
+			try(Socket clientSocket = server.accept())
+			{
+				InputStreamReader isr = new InputStreamReader(clientSocket.getInputStream());
+				BufferedReader buffer = new BufferedReader(isr);
+				
+				while(!buffer.readLine().equals(""));
+				String html = "<!DOCTYPE html>\n"
+					+ "<html>"
+					+ "<body>"
+					+ "<h1>Coucou</h1>"
+					+ "</body>"
+					+ "</html>\n";
+				String entete = "HTTP/1.1 200 OK\n"
+					+ "content-type:text/html;charset=utf-8\n" 
+					+ "content-length:" + html.getBytes().length + "\r\n\r\n";
+				String http = entete + html;
+				clientSocket.getOutputStream().write(http.getBytes("UTF-8"));
+				clientSocket.getOutputStream().flush();
+				clientSocket.close();
+			}
