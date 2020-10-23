@@ -48,28 +48,24 @@ class Server {
             for (int i = 0; i < 3; i++) { // On recupère la methode (on sait que c'est en premier)
             token = st.nextToken();
             methode[i] = token;
-            System.out.println("Methode" + i + ": " + "<"+token+">");
             }
         } catch (Exception e) {
-            System.out.println(methode[2] +" 400 Bad Request");
-            serverAnswer += methode[2] + " 400 Bad Request";
+            serverAnswer += "HTTP/1.1" + " 400 Bad Request\r\n\r\n";
             erreur = true;
         }
 
-        if (!(methode[2].contains("HTTP/1.0")) && !(methode[2].contains("HTTP/1.1")) ) { // si version non supportée
-            System.out.println(methode[2] +" 400 Bad Request");
-            serverAnswer += methode[2] + " 400 Bad Request";
+
+        if (!(methode[2].contains("HTTP/1.0")) && !(methode[2].contains("HTTP/1.1"))&&!erreur) { // si version non supportée
+            serverAnswer += "HTTP/1.1" + " 400 Bad Request\r\n\r\n";
             erreur = true;                
         }        
 
-        if(methode[2].contains("HTTP/1.1")){ // si version 1.1 de HTTP on verifie que le champ Host existe
+        if(methode[2].contains("HTTP/1.1")&&!erreur){ // si version 1.1 de HTTP on verifie que le champ Host existe
             try {
                 host = st.nextToken();
-                System.out.println("Host: "+"<"+host+">");
                 erreur = false;        
             } catch (Exception e) {
-                System.out.println(methode[2] +" 400 Bad Request");
-                serverAnswer += methode[2] + " 400 Bad Request";                
+                serverAnswer += "HTTP/1.1 400 Bad Request\r\n\r\n";             
                 erreur = true; // si on trouve pas de champs apres, la requete est forcement bad
             }    
         }
@@ -79,15 +75,14 @@ class Server {
     
                 File file = new File("." + methode[1]);
                 if (!Files.exists(file.toPath())) {
-                    System.out.println(methode[2] +" 404 Not Found");
-                    serverAnswer += methode[2] + " 404 Not Found";
+                    serverAnswer += "HTTP/1.1" + " 404 Not Found\r\n";
                     code = 404;
                 } else {
                     code = 200;
                     fileSize = Files.size(file.toPath());
-                    System.out.println("Taille du fichier: " + fileSize);
+                    //System.out.println("Taille du fichier: " + fileSize);
                     filetype = Files.probeContentType(file.toPath());
-                    System.out.println("Type du fichier: " + filetype);
+                   // System.out.println("Type du fichier: " + filetype);
 
                     // envoit de la ressource 
     
@@ -105,13 +100,14 @@ class Server {
     
                     // generation de l'en tete http
                     
-                     serverAnswer = methode[2] +" "+ code +" OK\r\n" + "content-type:"+filetype+";charset=utf-8\r\n" + "content-length:"
+                     serverAnswer = "HTTP/1.1 "+ code +" OK\r\n" + "content-type:"+filetype+";charset=utf-8\r\n" + "content-length:"
                     + data1.length + "\r\n\r\n";
     
                 }
                 
             }
             socketOuput.print(serverAnswer); // envoit de la reponse
+            System.out.println(serverAnswer);
 
             if(code == 200) // si Ok on envoit la ressource
             {
